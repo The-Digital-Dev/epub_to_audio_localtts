@@ -7,8 +7,18 @@ WORKDIR /app_src
 # Add current directory code to docker
 ADD . /app_src
 
-# Install ffmpeg
-RUN apt-get update && apt-get install -y ffmpeg
+# Install necessary system-level dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    ffmpeg \
+    sox \  
+    gcc \
+    build-essential \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install Rust compiler
+RUN curl https://sh.rustup.rs -sSf | sh -s -- -y
+ENV PATH="/root/.cargo/bin:${PATH}"
 
 # Install any needed packages specified in requirements.txt
 RUN pip install --no-cache-dir -r requirements.txt

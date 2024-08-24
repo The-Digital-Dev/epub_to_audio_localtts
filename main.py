@@ -1,11 +1,9 @@
 import argparse
 import logging
+import os
 
 from audiobook_generator.config.general_config import GeneralConfig
 from audiobook_generator.core.audiobook_generator import AudiobookGenerator
-from audiobook_generator.tts_providers.base_tts_provider import (
-    get_supported_tts_providers,
-)
 
 logging.basicConfig(
     level=logging.INFO,
@@ -14,20 +12,14 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-
 def handle_args():
     parser = argparse.ArgumentParser(description="Convert text book to audiobook")
-    parser.add_argument("input_file", help="Path to the EPUB file")
     parser.add_argument("output_folder", help="Path to the output folder")
-    parser.add_argument(
-        "--tts",
-        choices=get_supported_tts_providers(),
-        default=get_supported_tts_providers()[0],
-        help="Choose TTS provider (default: azure). azure: Azure Cognitive Services, openai: OpenAI TTS API. When using azure, environment variables MS_TTS_KEY and MS_TTS_REGION must be set. When using openai, environment variable OPENAI_API_KEY must be set.",
-    )
+    parser.add_argument("input_file", nargs='?', help="Path to the EPUB file")
+    
     parser.add_argument(
         "--log",
-        choices=["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"],
+        choices=["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"],  # Corrected
         default="INFO",
         help="Log level (default: INFO), can be DEBUG, INFO, WARNING, ERROR, CRITICAL",
     )
@@ -39,24 +31,24 @@ def handle_args():
     parser.add_argument(
         "--no_prompt",
         action="store_true",
-        help="Don't ask the user if they wish to continue after estimating the cloud cost for TTS. Useful for scripting.",
+        help="Don't ask the user if they wish to continue after processing. Useful for scripting.",
     )
     parser.add_argument(
         "--language",
         default="en-US",
-        help="Language for the text-to-speech service (default: en-US). For Azure TTS (--tts=azure), check https://learn.microsoft.com/en-us/azure/ai-services/speech-service/language-support?tabs=tts#text-to-speech for supported languages. For OpenAI TTS (--tts=openai), their API detects the language automatically. But setting this will also help on splitting the text into chunks with different strategies in this tool, especially for Chinese characters. For Chinese books, use zh-CN, zh-TW, or zh-HK.",
+        help="Language for the text-to-speech service (default: en-US). This helps in text splitting, especially for Chinese characters.",
     )
     parser.add_argument(
         "--newline_mode",
         choices=["single", "double", "none"],
         default="double",
-        help="Choose the mode of detecting new paragraphs: 'single', 'double', or 'none'. 'single' means a single newline character, while 'double' means two consecutive newline characters. 'none' means all newline characters will be replace with blank so paragraphs will not be detected. (default: double, works for most ebooks but will detect less paragraphs for some ebooks)",
+        help="Choose the mode of detecting new paragraphs: 'single', 'double', or 'none'. 'single' means a single newline character, while 'double' means two consecutive newline characters. 'none' means all newline characters will be replaced with blanks so paragraphs will not be detected. (default: double, works for most ebooks but will detect fewer paragraphs for some ebooks)",
     )
     parser.add_argument(
         "--title_mode",
         choices=["auto", "tag_text", "first_few"],
         default="auto",
-        help="Choose the parse mode for chapter title, 'tag_text' search 'title','h1','h2','h3' tag for title, 'first_few' set first 60 characters as title, 'auto' auto apply the best mode for current chapter.",
+        help="Choose the parse mode for chapter title: 'tag_text' searches 'title','h1','h2','h3' tags for title, 'first_few' sets the first 60 characters as title, 'auto' automatically applies the best mode for the current chapter.",
     )
     parser.add_argument(
         "--chapter_start",
@@ -80,68 +72,41 @@ def handle_args():
         action="store_true",
         help="This will remove endnote numbers from the end or middle of sentences. This is useful for academic books.",
     )
-
     parser.add_argument(
         "--voice_name",
-        help="Various TTS providers has different voice names, look up for your provider settings.",
+        help="Specify the voice name for Coqui TTS.",
     )
-
     parser.add_argument(
         "--output_format",
-        help="Output format for the text-to-speech service. Supported format depends on selected TTS provider",
+        help="Output format for the text-to-speech service. Supported format depends on Coqui TTS settings.",
     )
-
     parser.add_argument(
         "--model_name",
-        help="Various TTS providers has different neural model names",
-    )
-
-    edge_tts_group = parser.add_argument_group(title="edge specific")
-    edge_tts_group.add_argument(
-        "--voice_rate",
-        help="""
-            Speaking rate of the text. Valid relative values range from -50%%(--xxx='-50%%') to +100%%. 
-            For negative value use format --arg=value,
-        """,
-    )
-
-    edge_tts_group.add_argument(
-        "--voice_volume",
-        help="""
-            Volume level of the speaking voice. Valid relative values floor to -100%%.
-            For negative value use format --arg=value,
-        """,
-    )
-
-    edge_tts_group.add_argument(
-        "--voice_pitch",
-        help="""
-            Baseline pitch for the text.Valid relative values like -80Hz,+50Hz, pitch changes should be within 0.5 to 1.5 times the original audio.
-            For negative value use format --arg=value,
-        """,
-    )
-
-    edge_tts_group.add_argument(
-        "--proxy",
-        help="Proxy server for the TTS provider. Format: http://[username:password@]proxy.server:port",
-    )
-
-    azure_edge_tts_group = parser.add_argument_group(title="azure/edge specific")
-    azure_edge_tts_group.add_argument(
-        "--break_duration",
-        default="1250",
-        help="Break duration in milliseconds for the different paragraphs or sections (default: 1250, means 1.25 s). Valid values range from 0 to 5000 milliseconds for Azure TTS.",
+        help="Specify the model name for Coqui TTS.",
     )
 
     args = parser.parse_args()
-    return GeneralConfig(args)
 
+    # Ensure output folder exists
+    if not os.path.isdir(args.output_folder):
+        raise ValueError(f"The output folder '{args.output_folder}' does not exist.")
+
+    # Automatically detect the EPUB file if not provided
+    if not args.input_file:
+        epub_files = [f for f in os.listdir(args.output_folder) if f.endswith('.epub')]
+        if len(epub_files) == 1:
+            args.input_file = os.path.join(args.output_folder, epub_files[0])
+        elif len(epub_files) > 1:
+            raise ValueError("Multiple EPUB files found in the output directory. Please specify one.")
+        else:
+            raise ValueError("No EPUB file found in the output directory.")
+
+    return GeneralConfig(args)
 
 def main():
     config = handle_args()
     logger.setLevel(config.log)
     AudiobookGenerator(config).run()
-
 
 if __name__ == "__main__":
     main()

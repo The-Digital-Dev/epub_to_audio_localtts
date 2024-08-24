@@ -15,21 +15,14 @@ class GeneralConfig:
         self.chapter_end = args.chapter_end
         self.remove_endnotes = args.remove_endnotes
 
-        # TTS provider: common arguments
-        self.tts = args.tts
+        # TTS provider: Coqui TTS specific arguments
+        # Comment out or remove this if tts isn't needed
+        # self.tts = args.tts
+
         self.language = args.language
-        self.voice_name = args.voice_name
+        self.voice_name = args.voice_name  # Could be used to select different voices within a model
         self.output_format = args.output_format
-        self.model_name = args.model_name
-
-        # TTS provider: Azure & Edge TTS specific arguments
-        self.break_duration = args.break_duration
-
-        # TTS provider: Edge specific arguments
-        self.voice_rate = args.voice_rate
-        self.voice_volume = args.voice_volume
-        self.voice_pitch = args.voice_pitch
-        self.proxy = args.proxy
+        self.model_name = args.model_name  # For selecting the Coqui TTS model
 
     def __str__(self):
         return ', '.join(f"{key}={value}" for key, value in self.__dict__.items())

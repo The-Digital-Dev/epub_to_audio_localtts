@@ -12,10 +12,10 @@
 version: '3'
 services:
   epub_to_audiobook:
-    image: ghcr.io/p0n1/epub_to_audiobook:latest
+    build: .
     environment:
-      MS_TTS_KEY: <your_subscription_key>
-      MS_TTS_REGION: <your_region>
+      # Add any environment variables needed for Coqui TTS here if necessary
     volumes:
-      - ./:/app
-    command: 'your_book.epub audiobook_output'
+      - ./books:/app/books  # Mount your local books directory to the container
+      - ./output:/app/output  # Mount your local output directory to the container
+    command: 'books/your_book.epub output/audiobook_output'

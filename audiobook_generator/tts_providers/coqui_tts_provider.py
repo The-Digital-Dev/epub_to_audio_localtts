@@ -3,7 +3,7 @@ import os
 import subprocess
 import time
 
-from TTS.api import TTS
+from TTS.api import TTS # type: ignore
 
 from audiobook_generator.core.audio_tags import AudioTags
 from audiobook_generator.config.general_config import GeneralConfig

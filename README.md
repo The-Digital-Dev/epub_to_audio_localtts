@@ -1,4 +1,4 @@
-# EPUB to Audiobook Converter [![Discord](https://img.shields.io/discord/1177631634724491385?label=Discord&logo=discord&logoColor=white)](https://discord.com/invite/pgp2G8zhS7)
+# EPUB to Audiobook Converter Using local Coqui TTS [![Discord](https://img.shields.io/discord/1177631634724491385?label=Discord&logo=discord&logoColor=white)](https://discord.com/invite/pgp2G8zhS7)
 
 
 This project provides a command-line tool to convert EPUB ebooks into audiobooks using the local TTS service, [Coqui TTS](https://github.com/coqui-ai/TTS). The tool generates the audio for each chapter in the ebook, and the output audio files are optimized for use with [Audiobookshelf](https://github.com/advplyr/audiobookshelf). This project no longer supports cloud-based TTS services like Azure or OpenAI, focusing instead on the privacy and control offered by local TTS.

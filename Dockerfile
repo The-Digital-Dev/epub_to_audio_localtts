@@ -13,6 +13,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     sox \  
     gcc \
     build-essential \
+    espeak-ng \  
     curl \
     && rm -rf /var/lib/apt/lists/*
 

@@ -1,9 +1,13 @@
 import argparse
 import logging
 import os
+import sys
 
 from audiobook_generator.config.general_config import GeneralConfig
 from audiobook_generator.core.audiobook_generator import AudiobookGenerator
+
+# Print the received arguments for debugging
+print("Received arguments:", sys.argv)
 
 logging.basicConfig(
     level=logging.INFO,

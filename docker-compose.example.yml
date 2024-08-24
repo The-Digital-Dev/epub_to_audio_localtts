@@ -12,10 +12,9 @@
 version: '3'
 services:
   epub_to_audiobook:
-    build: .
-    environment:
-      # Add any environment variables needed for Coqui TTS here if necessary
+    image: epub_to_audio_localtts:latest
     volumes:
-      - ./books:/app/books  # Mount your local books directory to the container
-      - ./output:/app/output  # Mount your local output directory to the container
-    command: 'books/your_book.epub output/audiobook_output'
+      - ./input:/app/input
+      - ./output:/app/output
+    command: ["/app/output", "/app/input/The Oval Portrait Edgar Allan Poe.epub", "--no_prompt"]
+
